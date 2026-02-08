@@ -43,13 +43,13 @@ include_directories(include)
 
 # Source files
 set(KERNEL_SOURCES
-    # Will be populated in later stages
     # Phase 1: Boot and basic kernel
-    # src/kernel/kernel_main.cpp
-    # src/kernel/new.cpp
-    # src/arch/x86_64/gdt.cpp
-    # src/drivers/vga.cpp
-    # src/drivers/serial.cpp
+    src/kernel/kernel_main.cpp
+    src/kernel/new.cpp
+    src/arch/x86_64/gdt.cpp
+    src/drivers/vga.cpp
+    src/drivers/serial.cpp
+    src/common/string.cpp
 
     # Phase 2: Memory management
     # src/memory/physical_allocator.cpp
@@ -78,40 +78,44 @@ set(KERNEL_SOURCES
 )
 
 set(KERNEL_ASM_SOURCES
-    # Will be populated in later stages
-    # boot/boot.asm
-    # src/arch/x86_64/gdt.asm
+    # Phase 1: Boot code
+    boot/boot.asm
+    src/arch/x86_64/gdt.asm
+
+    # Phase 3: Interrupt handling
     # src/arch/x86_64/idt.asm
+
+    # Phase 4: Process management
     # src/process/context_switch.asm
     # src/process/syscall.asm
 )
 
 # Create kernel executable
-# add_executable(kernel.elf ${KERNEL_SOURCES} ${KERNEL_ASM_SOURCES})
-# set_target_properties(kernel.elf PROPERTIES LINK_DEPENDS ${CMAKE_SOURCE_DIR}/boot/linker.ld)
+add_executable(kernel.elf ${KERNEL_SOURCES} ${KERNEL_ASM_SOURCES})
+set_target_properties(kernel.elf PROPERTIES LINK_DEPENDS ${CMAKE_SOURCE_DIR}/boot/linker.ld)
 
 # Custom target to create ISO
-# add_custom_command(
-#     OUTPUT ${CMAKE_BINARY_DIR}/tiny-os.iso
-#     COMMAND ${CMAKE_SOURCE_DIR}/scripts/create-iso.sh
-#     DEPENDS kernel.elf
-#     COMMENT "Creating bootable ISO image"
-# )
+add_custom_command(
+    OUTPUT ${CMAKE_BINARY_DIR}/tiny-os.iso
+    COMMAND ${CMAKE_SOURCE_DIR}/scripts/create-iso.sh
+    DEPENDS kernel.elf
+    COMMENT "Creating bootable ISO image"
+)
 
-# add_custom_target(iso ALL DEPENDS ${CMAKE_BINARY_DIR}/tiny-os.iso)
+add_custom_target(iso ALL DEPENDS ${CMAKE_BINARY_DIR}/tiny-os.iso)
 
-# QEMU targets (will be enabled after kernel is built)
-# add_custom_target(run
-#     COMMAND ${CMAKE_SOURCE_DIR}/scripts/run-qemu.sh
-#     DEPENDS iso
-#     COMMENT "Running tiny-os in QEMU"
-# )
+# QEMU targets
+add_custom_target(run
+    COMMAND ${CMAKE_SOURCE_DIR}/scripts/run-qemu.sh
+    DEPENDS iso
+    COMMENT "Running tiny-os in QEMU"
+)
 
-# add_custom_target(debug
-#     COMMAND ${CMAKE_SOURCE_DIR}/scripts/debug-qemu.sh
-#     DEPENDS iso
-#     COMMENT "Running tiny-os in QEMU with GDB stub"
-# )
+add_custom_target(debug
+    COMMAND ${CMAKE_SOURCE_DIR}/scripts/debug-qemu.sh
+    DEPENDS iso
+    COMMENT "Running tiny-os in QEMU with GDB stub"
+)
 
 message(STATUS "tiny-os build system configured")
 message(STATUS "C++ Compiler: ${CMAKE_CXX_COMPILER}")
