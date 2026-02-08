@@ -1,7 +1,10 @@
 #include <tiny_os/kernel/kernel.h>
 #include <tiny_os/arch/x86_64/gdt.h>
+#include <tiny_os/arch/x86_64/idt.h>
+#include <tiny_os/arch/x86_64/pic.h>
 #include <tiny_os/drivers/vga.h>
 #include <tiny_os/drivers/serial.h>
+#include <tiny_os/drivers/timer.h>
 #include <tiny_os/memory/physical_allocator.h>
 #include <tiny_os/memory/virtual_allocator.h>
 #include <tiny_os/memory/heap_allocator.h>
@@ -31,7 +34,7 @@ extern "C" void kernel_main(uint32 magic, void* multiboot_info) {
 
     // Print banner
     drivers::kprintf("=================================\n");
-    drivers::kprintf("   tiny-os v0.1.0 - Phase 1\n");
+    drivers::kprintf("   tiny-os v0.1.0 - Phase 3\n");
     drivers::kprintf("=================================\n\n");
 
     drivers::serial_printf("tiny-os booting...\n");
@@ -83,6 +86,37 @@ extern "C" void kernel_main(uint32 magic, void* multiboot_info) {
     memory::PhysicalAllocator::print_stats();
     memory::HeapAllocator::print_stats();
 
+    // Initialize interrupt handling
+    drivers::kprintf("\n--- Phase 3: Interrupt Handling ---\n");
+
+    // Initialize IDT
+    drivers::kprintf("Initializing IDT... ");
+    arch::x86_64::IDT::init();
+    drivers::VGA::set_color(Color::LIGHT_GREEN, Color::BLACK);
+    drivers::kprintf("OK\n");
+    drivers::VGA::set_color(Color::LIGHT_GRAY, Color::BLACK);
+
+    // Initialize and remap PIC
+    drivers::kprintf("Initializing PIC... ");
+    arch::x86_64::PIC::init();
+    drivers::VGA::set_color(Color::LIGHT_GREEN, Color::BLACK);
+    drivers::kprintf("OK\n");
+    drivers::VGA::set_color(Color::LIGHT_GRAY, Color::BLACK);
+
+    // Initialize timer (100 Hz)
+    drivers::kprintf("Initializing Timer... ");
+    drivers::Timer::init(100);
+    drivers::VGA::set_color(Color::LIGHT_GREEN, Color::BLACK);
+    drivers::kprintf("OK\n");
+    drivers::VGA::set_color(Color::LIGHT_GRAY, Color::BLACK);
+
+    // Enable interrupts
+    drivers::kprintf("Enabling interrupts... ");
+    arch::x86_64::IDT::enable_interrupts();
+    drivers::VGA::set_color(Color::LIGHT_GREEN, Color::BLACK);
+    drivers::kprintf("OK\n");
+    drivers::VGA::set_color(Color::LIGHT_GRAY, Color::BLACK);
+
     // Print success message
     drivers::kprintf("\n");
     drivers::VGA::set_color(Color::YELLOW, Color::BLACK);
@@ -92,7 +126,7 @@ extern "C" void kernel_main(uint32 magic, void* multiboot_info) {
     drivers::VGA::set_color(Color::LIGHT_GRAY, Color::BLACK);
 
     drivers::kprintf("\n");
-    drivers::kprintf("Phase 1 & 2 Complete!\n");
+    drivers::kprintf("Phase 1, 2 & 3 Complete!\n");
     drivers::kprintf("- Multiboot2 boot: OK\n");
     drivers::kprintf("- 64-bit long mode: OK\n");
     drivers::kprintf("- GDT setup: OK\n");
@@ -102,18 +136,31 @@ extern "C" void kernel_main(uint32 magic, void* multiboot_info) {
     drivers::kprintf("- Physical memory: OK\n");
     drivers::kprintf("- Virtual memory: OK\n");
     drivers::kprintf("- Heap allocator: OK\n");
+    drivers::kprintf("- Interrupt handling: OK\n");
+    drivers::kprintf("- PIC remapped: OK\n");
+    drivers::kprintf("- Timer (100Hz): OK\n");
 
-    drivers::serial_printf("\nPhase 2 complete. Memory management initialized.\n");
-    drivers::serial_printf("Next phase: Interrupt handling\n");
+    drivers::serial_printf("\nPhase 3 complete. Interrupt handling initialized.\n");
+    drivers::serial_printf("Next phase: Process and thread management\n");
 
     drivers::kprintf("\n");
     drivers::VGA::set_color(Color::LIGHT_BLUE, Color::BLACK);
-    drivers::kprintf("System halted. Press Reset to reboot.\n");
+    drivers::kprintf("Timer is running. Uptime displayed every second.\n");
+    drivers::kprintf("Press Reset to reboot.\n");
     drivers::VGA::set_color(Color::LIGHT_GRAY, Color::BLACK);
 
-    // Halt the system
+    // Idle loop - timer interrupts will fire
     while (true) {
         asm volatile("hlt");
+
+        // Display uptime on screen every 5 seconds
+        static uint64 last_displayed = 0;
+        uint64 uptime = drivers::Timer::get_uptime_seconds();
+        if (uptime > 0 && uptime != last_displayed && uptime % 5 == 0) {
+            last_displayed = uptime;
+            drivers::kprintf("Uptime: %d seconds (%d ticks)\n",
+                           uptime, drivers::Timer::get_ticks());
+        }
     }
 }
 

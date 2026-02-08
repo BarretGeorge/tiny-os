@@ -58,9 +58,9 @@ set(KERNEL_SOURCES
     src/memory/heap_allocator.cpp
 
     # Phase 3: Interrupt handling
-    # src/arch/x86_64/idt.cpp
-    # src/arch/x86_64/pic.cpp
-    # src/drivers/timer.cpp
+    src/arch/x86_64/idt.cpp
+    src/arch/x86_64/pic.cpp
+    src/drivers/timer.cpp
 
     # Phase 4: Process and thread management
     # src/process/process.cpp
@@ -84,7 +84,7 @@ set(KERNEL_ASM_SOURCES
     src/arch/x86_64/gdt.asm
 
     # Phase 3: Interrupt handling
-    # src/arch/x86_64/idt.asm
+    src/arch/x86_64/idt.asm
 
     # Phase 4: Process management
     # src/process/context_switch.asm
