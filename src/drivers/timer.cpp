@@ -3,6 +3,7 @@
 #include <tiny_os/drivers/serial.h>
 #include <tiny_os/arch/x86_64/idt.h>
 #include <tiny_os/arch/x86_64/pic.h>
+#include <tiny_os/process/scheduler.h>
 
 namespace tiny_os::drivers {
 
@@ -51,7 +52,8 @@ void Timer::timer_interrupt_handler(void* frame) {
     // Send EOI to PIC
     arch::x86_64::PIC::send_eoi(0);
 
-    // TODO: Call scheduler here in Phase 4
+    // Call scheduler (Phase 4)
+    process::Scheduler::schedule();
 }
 
 uint64 Timer::get_ticks() {

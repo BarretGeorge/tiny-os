@@ -8,6 +8,9 @@
 #include <tiny_os/memory/physical_allocator.h>
 #include <tiny_os/memory/virtual_allocator.h>
 #include <tiny_os/memory/heap_allocator.h>
+#include <tiny_os/process/process.h>
+#include <tiny_os/process/thread.h>
+#include <tiny_os/process/scheduler.h>
 
 namespace tiny_os::kernel {
 
@@ -34,7 +37,7 @@ extern "C" void kernel_main(uint32 magic, void* multiboot_info) {
 
     // Print banner
     drivers::kprintf("=================================\n");
-    drivers::kprintf("   tiny-os v0.1.0 - Phase 3\n");
+    drivers::kprintf("   tiny-os v0.1.0 - Phase 4\n");
     drivers::kprintf("=================================\n\n");
 
     drivers::serial_printf("tiny-os booting...\n");
@@ -117,6 +120,80 @@ extern "C" void kernel_main(uint32 magic, void* multiboot_info) {
     drivers::kprintf("OK\n");
     drivers::VGA::set_color(Color::LIGHT_GRAY, Color::BLACK);
 
+    // Initialize process and thread management
+    drivers::kprintf("\n--- Phase 4: Process and Thread Management ---\n");
+
+    // Initialize process manager
+    drivers::kprintf("Initializing process manager... ");
+    process::ProcessManager::init();
+    drivers::VGA::set_color(Color::LIGHT_GREEN, Color::BLACK);
+    drivers::kprintf("OK\n");
+    drivers::VGA::set_color(Color::LIGHT_GRAY, Color::BLACK);
+
+    // Initialize thread manager
+    drivers::kprintf("Initializing thread manager... ");
+    process::ThreadManager::init();
+    drivers::VGA::set_color(Color::LIGHT_GREEN, Color::BLACK);
+    drivers::kprintf("OK\n");
+    drivers::VGA::set_color(Color::LIGHT_GRAY, Color::BLACK);
+
+    // Initialize scheduler
+    drivers::kprintf("Initializing scheduler... ");
+    process::Scheduler::init();
+    drivers::VGA::set_color(Color::LIGHT_GREEN, Color::BLACK);
+    drivers::kprintf("OK\n");
+    drivers::VGA::set_color(Color::LIGHT_GRAY, Color::BLACK);
+
+    // Start scheduler (creates idle process)
+    drivers::kprintf("Starting scheduler... ");
+    process::Scheduler::start();
+    drivers::VGA::set_color(Color::LIGHT_GREEN, Color::BLACK);
+    drivers::kprintf("OK\n");
+    drivers::VGA::set_color(Color::LIGHT_GRAY, Color::BLACK);
+
+    // Create demo processes
+    drivers::kprintf("\nCreating demo processes...\n");
+
+    // Demo process 1
+    auto demo1 = []() {
+        for (int i = 0; i < 10; i++) {
+            drivers::kprintf("[Process 1] Iteration %d\n", i);
+            process::ThreadManager::yield();
+        }
+        drivers::kprintf("[Process 1] Finished!\n");
+    };
+
+    // Demo process 2
+    auto demo2 = []() {
+        for (int i = 0; i < 10; i++) {
+            drivers::kprintf("[Process 2] Count %d\n", i);
+            process::ThreadManager::yield();
+        }
+        drivers::kprintf("[Process 2] Finished!\n");
+    };
+
+    // Demo process 3
+    auto demo3 = []() {
+        for (int i = 0; i < 10; i++) {
+            drivers::kprintf("[Process 3] Step %d\n", i);
+            process::ThreadManager::yield();
+        }
+        drivers::kprintf("[Process 3] Finished!\n");
+    };
+
+    process::Process* proc1 = process::ProcessManager::create_kernel_process("demo1", demo1);
+    process::Process* proc2 = process::ProcessManager::create_kernel_process("demo2", demo2);
+    process::Process* proc3 = process::ProcessManager::create_kernel_process("demo3", demo3);
+
+    if (proc1 && proc2 && proc3) {
+        // Add threads to scheduler
+        process::Scheduler::add_thread(proc1->main_thread);
+        process::Scheduler::add_thread(proc2->main_thread);
+        process::Scheduler::add_thread(proc3->main_thread);
+
+        drivers::kprintf("Created 3 demo processes\n");
+    }
+
     // Print success message
     drivers::kprintf("\n");
     drivers::VGA::set_color(Color::YELLOW, Color::BLACK);
@@ -126,7 +203,7 @@ extern "C" void kernel_main(uint32 magic, void* multiboot_info) {
     drivers::VGA::set_color(Color::LIGHT_GRAY, Color::BLACK);
 
     drivers::kprintf("\n");
-    drivers::kprintf("Phase 1, 2 & 3 Complete!\n");
+    drivers::kprintf("Phase 1, 2, 3 & 4 Complete!\n");
     drivers::kprintf("- Multiboot2 boot: OK\n");
     drivers::kprintf("- 64-bit long mode: OK\n");
     drivers::kprintf("- GDT setup: OK\n");
@@ -139,28 +216,25 @@ extern "C" void kernel_main(uint32 magic, void* multiboot_info) {
     drivers::kprintf("- Interrupt handling: OK\n");
     drivers::kprintf("- PIC remapped: OK\n");
     drivers::kprintf("- Timer (100Hz): OK\n");
+    drivers::kprintf("- Process management: OK\n");
+    drivers::kprintf("- Thread management: OK\n");
+    drivers::kprintf("- Scheduler (Round-Robin): OK\n");
+    drivers::kprintf("- Multitasking: OK\n");
 
-    drivers::serial_printf("\nPhase 3 complete. Interrupt handling initialized.\n");
-    drivers::serial_printf("Next phase: Process and thread management\n");
+    drivers::serial_printf("\nPhase 4 complete. Process and thread management initialized.\n");
+    drivers::serial_printf("Next phase: File system\n");
 
     drivers::kprintf("\n");
     drivers::VGA::set_color(Color::LIGHT_BLUE, Color::BLACK);
-    drivers::kprintf("Timer is running. Uptime displayed every second.\n");
-    drivers::kprintf("Press Reset to reboot.\n");
+    drivers::kprintf("Multitasking enabled! Demo processes running.\n");
+    drivers::kprintf("Watch the processes execute in parallel.\n");
     drivers::VGA::set_color(Color::LIGHT_GRAY, Color::BLACK);
 
-    // Idle loop - timer interrupts will fire
+    drivers::kprintf("\n");
+
+    // Idle loop - scheduler will switch between processes
     while (true) {
         asm volatile("hlt");
-
-        // Display uptime on screen every 5 seconds
-        static uint64 last_displayed = 0;
-        uint64 uptime = drivers::Timer::get_uptime_seconds();
-        if (uptime > 0 && uptime != last_displayed && uptime % 5 == 0) {
-            last_displayed = uptime;
-            drivers::kprintf("Uptime: %d seconds (%d ticks)\n",
-                           uptime, drivers::Timer::get_ticks());
-        }
     }
 }
 

@@ -63,9 +63,9 @@ set(KERNEL_SOURCES
     src/drivers/timer.cpp
 
     # Phase 4: Process and thread management
-    # src/process/process.cpp
-    # src/process/thread.cpp
-    # src/process/scheduler.cpp
+    src/process/process.cpp
+    src/process/thread.cpp
+    src/process/scheduler.cpp
     # src/process/syscall.cpp
 
     # Phase 5: Filesystem
@@ -87,7 +87,7 @@ set(KERNEL_ASM_SOURCES
     src/arch/x86_64/idt.asm
 
     # Phase 4: Process management
-    # src/process/context_switch.asm
+    src/process/context_switch.asm
     # src/process/syscall.asm
 )
 
