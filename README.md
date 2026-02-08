@@ -19,11 +19,11 @@ tiny-os is a monolithic kernel operating system designed to demonstrate modern C
 - [x] **Phase 2:** Memory management
 - [x] **Phase 3:** Interrupt handling
 - [x] **Phase 4:** Process and thread management
-- [ ] **Phase 5:** File system (FAT32)
+- [x] **Phase 5:** File system (FAT32)
 - [ ] **Phase 6:** Device drivers and shell
 - [ ] **Phase 7:** Documentation and optimization
 
-**Progress: 4/7 phases complete (57%)**
+**Progress: 5/7 phases complete (71%)**
 
 ### Implemented Features
 
@@ -61,11 +61,19 @@ tiny-os is a monolithic kernel operating system designed to demonstrate modern C
 - ⏳ System call interface (planned for later)
 - ⏳ fork() implementation (planned for later)
 
-**Phase 5: File System**
-- Virtual File System (VFS) layer
-- FAT32 file system support
-- ATA/IDE disk driver (PIO mode)
-- File descriptor table
+**Phase 5: File System** ✅
+- ✅ Virtual File System (VFS) layer with mount points
+- ✅ FAT32 file system (read-only support)
+- ✅ ATA/IDE disk driver (PIO mode, LBA28)
+- ✅ Block device abstraction layer
+- ✅ File operations: open, close, read, seek
+- ✅ Directory operations: readdir
+- ✅ Boot sector parsing and validation
+- ✅ FAT table caching for fast cluster lookup
+- ✅ Cluster chain traversal for large files
+- ✅ 8.3 filename conversion
+- ⏳ File descriptor table (planned for Phase 6)
+- ⏳ Write support (planned for Phase 6)
 
 **Phase 6: Device Drivers and Shell**
 - PS/2 keyboard driver
@@ -157,11 +165,11 @@ For detailed architecture documentation, see [docs/ARCHITECTURE.md](docs/ARCHITE
 
 ## Current Capabilities
 
-tiny-os currently demonstrates a **fully functional multitasking kernel** with:
+tiny-os currently demonstrates a **fully functional multitasking kernel with file system support**:
 
 ### Running System
 ```
-tiny-os v0.1.0 - Phase 4
+tiny-os v0.1.0 - Phase 5
 =================================
 
 ✅ Multiboot2 boot: OK
@@ -180,6 +188,12 @@ tiny-os v0.1.0 - Phase 4
 ✅ Thread management: OK
 ✅ Scheduler (Round-Robin): OK
 ✅ Multitasking: OK
+✅ ATA driver: OK
+✅ VFS layer: OK
+✅ FAT32 filesystem: OK
+
+Disk: QEMU HARDDISK (100 MB)
+FAT32 mounted as root filesystem
 ```
 
 ### Concurrent Execution
@@ -210,6 +224,14 @@ The kernel can run multiple processes simultaneously:
 - **Processes:** Up to 256 concurrent processes
 - **Threads:** 16KB kernel stacks per thread
 
+### File System
+- **VFS Layer:** Abstract filesystem interface with mount support
+- **FAT32 Support:** Boot sector parsing, FAT table caching, cluster chain traversal
+- **ATA Driver:** PIO mode with LBA28 addressing (up to 128GB disks)
+- **Block Device:** Generic block device abstraction
+- **Operations:** File open/close, read, seek, directory listing
+- **Features:** 8.3 filename conversion, long filename (LFN) structures ready
+
 ## Development Progress
 
 This project follows a phased implementation approach:
@@ -221,11 +243,11 @@ This project follows a phased implementation approach:
 | Phase 2: Memory Management | Week 4-6 | ✅ **Complete** |
 | Phase 3: Interrupt Handling | Week 7 | ✅ **Complete** |
 | Phase 4: Process & Thread Mgmt | Week 8-10 | ✅ **Complete** |
-| Phase 5: File System | Week 11-14 | 🔄 Next |
-| Phase 6: Drivers & Shell | Week 15-16 | ⏳ Planned |
+| Phase 5: File System | Week 11-14 | ✅ **Complete** |
+| Phase 6: Drivers & Shell | Week 15-16 | 🔄 Next |
 | Phase 7: Documentation | Week 17-18 | ⏳ Planned |
 
-**Current Milestone:** Preemptive multitasking with 3 concurrent demo processes
+**Current Milestone:** FAT32 file system with VFS abstraction and ATA disk driver
 
 ## C++20 Features Used
 
@@ -265,10 +287,13 @@ Part of the "tiny-" series of educational system programming projects.
 
 ---
 
-**🚀 Project Status:** Active Development - **Phase 4 Complete** (Multitasking Enabled!)
+**🚀 Project Status:** Active Development - **Phase 5 Complete** (File System Operational!)
 
 **Latest Updates:**
-- ✅ Preemptive multitasking with Round-Robin scheduler
-- ✅ Context switching between kernel threads
-- ✅ Demo processes running concurrently
-- 📊 Next: File system implementation (FAT32)
+- ✅ Virtual File System (VFS) layer with mount point support
+- ✅ FAT32 file system with read-only support
+- ✅ ATA/IDE disk driver (PIO mode, LBA28 addressing)
+- ✅ File operations: open, close, read, seek, directory listing
+- ✅ Boot sector parsing and FAT table caching
+- ✅ Cluster chain traversal for large files
+- 📊 Next: Keyboard driver and interactive shell
