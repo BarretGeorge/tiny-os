@@ -71,7 +71,7 @@ set(KERNEL_SOURCES
     # Phase 5: Filesystem
     # src/fs/vfs.cpp
     # src/fs/fat32.cpp
-    # src/drivers/ata.cpp
+    src/drivers/ata.cpp
 
     # Phase 6: Drivers and shell
     # src/drivers/keyboard.cpp
