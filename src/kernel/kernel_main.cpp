@@ -2,6 +2,9 @@
 #include <tiny_os/arch/x86_64/gdt.h>
 #include <tiny_os/drivers/vga.h>
 #include <tiny_os/drivers/serial.h>
+#include <tiny_os/memory/physical_allocator.h>
+#include <tiny_os/memory/virtual_allocator.h>
+#include <tiny_os/memory/heap_allocator.h>
 
 namespace tiny_os::kernel {
 
@@ -57,6 +60,29 @@ extern "C" void kernel_main(uint32 magic, void* multiboot_info) {
     drivers::VGA::set_color(Color::LIGHT_GRAY, Color::BLACK);
     drivers::serial_printf("GDT initialized\n");
 
+    // Initialize physical memory allocator
+    drivers::kprintf("\n--- Phase 2: Memory Management ---\n");
+    memory::PhysicalAllocator::init(multiboot_info);
+
+    // Initialize virtual memory
+    memory::VirtualAllocator::init();
+
+    // Initialize kernel heap (16MB)
+    constexpr VirtualAddress HEAP_START = 0xFFFFFFFF90000000ULL;
+    constexpr usize HEAP_SIZE = 16 * 1024 * 1024;  // 16MB
+    memory::HeapAllocator::init(HEAP_START, HEAP_SIZE);
+
+    // Test heap allocator
+    drivers::kprintf("\nTesting heap allocator...\n");
+    int* test_ptr = new int(42);
+    drivers::kprintf("Allocated int: %d\n", *test_ptr);
+    delete test_ptr;
+    drivers::kprintf("Heap test: OK\n");
+
+    // Print memory stats
+    memory::PhysicalAllocator::print_stats();
+    memory::HeapAllocator::print_stats();
+
     // Print success message
     drivers::kprintf("\n");
     drivers::VGA::set_color(Color::YELLOW, Color::BLACK);
@@ -66,16 +92,19 @@ extern "C" void kernel_main(uint32 magic, void* multiboot_info) {
     drivers::VGA::set_color(Color::LIGHT_GRAY, Color::BLACK);
 
     drivers::kprintf("\n");
-    drivers::kprintf("Phase 1 Complete!\n");
+    drivers::kprintf("Phase 1 & 2 Complete!\n");
     drivers::kprintf("- Multiboot2 boot: OK\n");
     drivers::kprintf("- 64-bit long mode: OK\n");
     drivers::kprintf("- GDT setup: OK\n");
     drivers::kprintf("- VGA text mode: OK\n");
     drivers::kprintf("- Serial output: OK\n");
     drivers::kprintf("- C++ runtime: OK\n");
+    drivers::kprintf("- Physical memory: OK\n");
+    drivers::kprintf("- Virtual memory: OK\n");
+    drivers::kprintf("- Heap allocator: OK\n");
 
-    drivers::serial_printf("\nPhase 1 complete. Kernel is running in 64-bit mode.\n");
-    drivers::serial_printf("Next phase: Memory management\n");
+    drivers::serial_printf("\nPhase 2 complete. Memory management initialized.\n");
+    drivers::serial_printf("Next phase: Interrupt handling\n");
 
     drivers::kprintf("\n");
     drivers::VGA::set_color(Color::LIGHT_BLUE, Color::BLACK);

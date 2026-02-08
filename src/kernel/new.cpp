@@ -1,5 +1,7 @@
 #include <tiny_os/common/types.h>
 #include <tiny_os/drivers/vga.h>
+#include <cstddef>
+#include <cstdint>
 
 namespace tiny_os::kernel {
 
@@ -8,31 +10,34 @@ namespace tiny_os::kernel {
 static uint8 early_heap[1024 * 1024];  // 1MB early heap
 static usize early_heap_offset = 0;
 
-void* early_malloc(usize size) {
+} // namespace tiny_os::kernel
+
+// Export for global operators
+extern "C" void* tiny_os_early_malloc(size_t size) {
+    using namespace tiny_os;
+
     // Align to 16 bytes
     size = (size + 15) & ~15;
 
-    if (early_heap_offset + size > sizeof(early_heap)) {
+    if (kernel::early_heap_offset + size > sizeof(kernel::early_heap)) {
         drivers::kprintf("PANIC: Early heap exhausted!\n");
         while (true) {
             asm volatile("cli; hlt");
         }
     }
 
-    void* ptr = &early_heap[early_heap_offset];
-    early_heap_offset += size;
+    void* ptr = &kernel::early_heap[kernel::early_heap_offset];
+    kernel::early_heap_offset += size;
     return ptr;
 }
 
-} // namespace tiny_os::kernel
-
 // Global operator new/delete implementations
-void* operator new(usize size) {
-    return tiny_os::kernel::early_malloc(size);
+void* operator new(size_t size) {
+    return tiny_os_early_malloc(size);
 }
 
-void* operator new[](usize size) {
-    return tiny_os::kernel::early_malloc(size);
+void* operator new[](size_t size) {
+    return tiny_os_early_malloc(size);
 }
 
 void operator delete(void* ptr) noexcept {
@@ -45,12 +50,12 @@ void operator delete[](void* ptr) noexcept {
     (void)ptr;
 }
 
-void operator delete(void* ptr, usize size) noexcept {
+void operator delete(void* ptr, size_t size) noexcept {
     (void)ptr;
     (void)size;
 }
 
-void operator delete[](void* ptr, usize size) noexcept {
+void operator delete[](void* ptr, size_t size) noexcept {
     (void)ptr;
     (void)size;
 }
@@ -74,7 +79,7 @@ void __cxa_finalize(void*) {
 }
 
 // Stack protection (disabled but symbols needed)
-uintptr_t __stack_chk_guard = 0x595e9fbd94fda766;
+uint64_t __stack_chk_guard = 0x595e9fbd94fda766;
 
 void __stack_chk_fail() {
     tiny_os::drivers::kprintf("PANIC: Stack smashing detected!\n");

@@ -50,11 +50,12 @@ set(KERNEL_SOURCES
     src/drivers/vga.cpp
     src/drivers/serial.cpp
     src/common/string.cpp
+    src/common/multiboot2.cpp
 
     # Phase 2: Memory management
-    # src/memory/physical_allocator.cpp
-    # src/memory/virtual_allocator.cpp
-    # src/memory/heap_allocator.cpp
+    src/memory/physical_allocator.cpp
+    src/memory/virtual_allocator.cpp
+    src/memory/heap_allocator.cpp
 
     # Phase 3: Interrupt handling
     # src/arch/x86_64/idt.cpp

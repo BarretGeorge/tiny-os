@@ -19,6 +19,7 @@ SECTIONS {
 
     /* Switch to higher-half kernel virtual addresses */
     . += KERNEL_VIRTUAL_BASE;
+    kernel_virtual_base = .;
 
     /* Text section (code) */
     .text ALIGN(4K) : AT(ADDR(.text) - KERNEL_VIRTUAL_BASE) {
