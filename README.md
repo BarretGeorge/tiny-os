@@ -14,41 +14,52 @@ tiny-os is a monolithic kernel operating system designed to demonstrate modern C
 
 ### Current Status
 
-- [x] Project structure and build system
-- [ ] Bootloader and basic kernel (Phase 1)
-- [ ] Memory management (Phase 2)
-- [ ] Interrupt handling (Phase 3)
-- [ ] Process and thread management (Phase 4)
-- [ ] File system (FAT32) (Phase 5)
-- [ ] Device drivers and shell (Phase 6)
-- [ ] Documentation and optimization (Phase 7)
+- [x] **Phase 0:** Project structure and build system
+- [x] **Phase 1:** Bootloader and basic kernel
+- [x] **Phase 2:** Memory management
+- [x] **Phase 3:** Interrupt handling
+- [x] **Phase 4:** Process and thread management
+- [ ] **Phase 5:** File system (FAT32)
+- [ ] **Phase 6:** Device drivers and shell
+- [ ] **Phase 7:** Documentation and optimization
 
-### Planned Features
+**Progress: 4/7 phases complete (57%)**
 
-**Phase 1: Boot and Basic Kernel**
-- Multiboot2 compliant bootloader
-- GDT (Global Descriptor Table) setup
-- VGA text mode output
-- Serial port debugging
+### Implemented Features
 
-**Phase 2: Memory Management**
-- Physical memory allocator (bitmap-based)
-- Virtual memory with 4-level paging
-- Kernel heap allocator
-- C++ new/delete operators
+**Phase 1: Boot and Basic Kernel** ✅
+- ✅ Multiboot2 compliant bootloader
+- ✅ x86-64 long mode setup with 4-level paging
+- ✅ GDT (Global Descriptor Table) with 5 segments
+- ✅ VGA text mode output (80x25, color support, scrolling)
+- ✅ Serial port debugging (COM1, 38400 baud)
+- ✅ Higher-half kernel mapping (0xFFFFFFFF80000000)
 
-**Phase 3: Interrupt Handling**
-- IDT (Interrupt Descriptor Table)
-- PIC (8259) configuration
-- Timer driver (PIT)
-- Exception handlers
+**Phase 2: Memory Management** ✅
+- ✅ Physical memory allocator (bitmap-based, 4KB frames)
+- ✅ Virtual memory with 4-level paging (PML4→PDPT→PD→PT)
+- ✅ Kernel heap allocator (first-fit with free list)
+- ✅ C++ new/delete operators
+- ✅ Multiboot2 memory map parsing
+- ✅ Page fault exception handling
 
-**Phase 4: Process and Thread Management**
-- Process Control Block (PCB)
-- Round-robin scheduler
-- Context switching
-- System call interface
-- fork() implementation
+**Phase 3: Interrupt Handling** ✅
+- ✅ IDT (Interrupt Descriptor Table) with 256 entries
+- ✅ PIC (8259) configuration and remapping
+- ✅ Timer driver (PIT at 100 Hz)
+- ✅ Exception handlers for all CPU exceptions
+- ✅ Detailed error reporting with register dumps
+- ✅ Hardware interrupt (IRQ) support
+
+**Phase 4: Process and Thread Management** ✅
+- ✅ Process Control Block (PCB) with state management
+- ✅ Thread Control Block (TCB) with 16KB stacks
+- ✅ Round-robin scheduler with preemptive multitasking
+- ✅ Context switching (assembly-optimized)
+- ✅ Idle process and thread
+- ✅ Demo processes showing concurrent execution
+- ⏳ System call interface (planned for later)
+- ⏳ fork() implementation (planned for later)
 
 **Phase 5: File System**
 - Virtual File System (VFS) layer
@@ -144,20 +155,77 @@ tiny-os uses a **monolithic kernel** architecture where all kernel services run 
 
 For detailed architecture documentation, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
+## Current Capabilities
+
+tiny-os currently demonstrates a **fully functional multitasking kernel** with:
+
+### Running System
+```
+tiny-os v0.1.0 - Phase 4
+=================================
+
+✅ Multiboot2 boot: OK
+✅ 64-bit long mode: OK
+✅ GDT setup: OK
+✅ VGA text mode: OK
+✅ Serial output: OK
+✅ C++ runtime: OK
+✅ Physical memory: OK
+✅ Virtual memory: OK
+✅ Heap allocator: OK
+✅ Interrupt handling: OK
+✅ PIC remapped: OK
+✅ Timer (100Hz): OK
+✅ Process management: OK
+✅ Thread management: OK
+✅ Scheduler (Round-Robin): OK
+✅ Multitasking: OK
+```
+
+### Concurrent Execution
+The kernel can run multiple processes simultaneously:
+```
+[Process 1] Iteration 0
+[Process 2] Count 0
+[Process 3] Step 0
+[Process 1] Iteration 1
+[Process 2] Count 1
+[Process 3] Step 1
+...
+```
+
+### Memory Management
+- **Physical Memory:** Bitmap allocator tracking 4KB frames
+- **Virtual Memory:** 4-level paging with higher-half kernel
+- **Heap:** First-fit allocator with 16MB kernel heap
+
+### Interrupt System
+- **Timer:** 100 Hz tick rate for scheduling
+- **Exceptions:** Full CPU exception handling with detailed dumps
+- **IRQs:** Hardware interrupt support via remapped PIC
+
+### Multitasking
+- **Scheduler:** Round-Robin with 100ms time slices
+- **Context Switch:** Assembly-optimized register save/restore
+- **Processes:** Up to 256 concurrent processes
+- **Threads:** 16KB kernel stacks per thread
+
 ## Development Progress
 
 This project follows a phased implementation approach:
 
 | Phase | Duration | Status |
 |-------|----------|--------|
-| Phase 0: Project Setup | Week 1 | ✅ Complete |
-| Phase 1: Boot & Kernel | Week 2-3 | 🔄 In Progress |
-| Phase 2: Memory | Week 4-6 | ⏳ Planned |
-| Phase 3: Interrupts | Week 7 | ⏳ Planned |
-| Phase 4: Processes | Week 8-10 | ⏳ Planned |
-| Phase 5: File System | Week 11-14 | ⏳ Planned |
+| Phase 0: Project Setup | Week 1 | ✅ **Complete** |
+| Phase 1: Boot & Kernel | Week 2-3 | ✅ **Complete** |
+| Phase 2: Memory Management | Week 4-6 | ✅ **Complete** |
+| Phase 3: Interrupt Handling | Week 7 | ✅ **Complete** |
+| Phase 4: Process & Thread Mgmt | Week 8-10 | ✅ **Complete** |
+| Phase 5: File System | Week 11-14 | 🔄 Next |
 | Phase 6: Drivers & Shell | Week 15-16 | ⏳ Planned |
 | Phase 7: Documentation | Week 17-18 | ⏳ Planned |
+
+**Current Milestone:** Preemptive multitasking with 3 concurrent demo processes
 
 ## C++20 Features Used
 
@@ -197,4 +265,10 @@ Part of the "tiny-" series of educational system programming projects.
 
 ---
 
-**🚧 Project Status:** Active Development (Phase 0 Complete)
+**🚀 Project Status:** Active Development - **Phase 4 Complete** (Multitasking Enabled!)
+
+**Latest Updates:**
+- ✅ Preemptive multitasking with Round-Robin scheduler
+- ✅ Context switching between kernel threads
+- ✅ Demo processes running concurrently
+- 📊 Next: File system implementation (FAT32)
