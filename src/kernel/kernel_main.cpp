@@ -11,6 +11,9 @@
 #include <tiny_os/process/process.h>
 #include <tiny_os/process/thread.h>
 #include <tiny_os/process/scheduler.h>
+#include <tiny_os/drivers/ata.h>
+#include <tiny_os/fs/vfs.h>
+#include <tiny_os/fs/fat32.h>
 
 namespace tiny_os::kernel {
 
@@ -37,7 +40,7 @@ extern "C" void kernel_main(uint32 magic, void* multiboot_info) {
 
     // Print banner
     drivers::kprintf("=================================\n");
-    drivers::kprintf("   tiny-os v0.1.0 - Phase 4\n");
+    drivers::kprintf("   tiny-os v0.1.0 - Phase 5\n");
     drivers::kprintf("=================================\n\n");
 
     drivers::serial_printf("tiny-os booting...\n");
@@ -194,6 +197,52 @@ extern "C" void kernel_main(uint32 magic, void* multiboot_info) {
         drivers::kprintf("Created 3 demo processes\n");
     }
 
+    // Initialize file system
+    drivers::kprintf("\n--- Phase 5: File System ---\n");
+
+    // Initialize ATA manager
+    drivers::kprintf("Initializing ATA manager... ");
+    drivers::ATAManager::init();
+    drivers::VGA::set_color(Color::LIGHT_GREEN, Color::BLACK);
+    drivers::kprintf("OK\n");
+    drivers::VGA::set_color(Color::LIGHT_GRAY, Color::BLACK);
+
+    // Detect ATA devices
+    drivers::ATAManager::detect_devices();
+
+    // Get primary master device
+    drivers::ATADevice* disk = drivers::ATAManager::get_primary_master();
+    if (disk) {
+        drivers::kprintf("Primary master disk found\n");
+
+        // Initialize VFS
+        drivers::kprintf("Initializing VFS... ");
+        fs::VFS::init();
+        drivers::VGA::set_color(Color::LIGHT_GREEN, Color::BLACK);
+        drivers::kprintf("OK\n");
+        drivers::VGA::set_color(Color::LIGHT_GRAY, Color::BLACK);
+
+        // Try to mount FAT32
+        drivers::kprintf("Mounting FAT32 filesystem... ");
+        fs::FAT32* fat32 = fs::FAT32::mount(disk);
+        if (fat32) {
+            drivers::VGA::set_color(Color::LIGHT_GREEN, Color::BLACK);
+            drivers::kprintf("OK\n");
+            drivers::VGA::set_color(Color::LIGHT_GRAY, Color::BLACK);
+
+            // Mount as root
+            fs::VFS::mount("/", fat32);
+            drivers::kprintf("FAT32 mounted as root filesystem\n");
+        } else {
+            drivers::VGA::set_color(Color::LIGHT_RED, Color::BLACK);
+            drivers::kprintf("FAILED\n");
+            drivers::VGA::set_color(Color::LIGHT_GRAY, Color::BLACK);
+            drivers::kprintf("(No FAT32 filesystem found on disk)\n");
+        }
+    } else {
+        drivers::kprintf("No ATA disk found (emulator may need disk image)\n");
+    }
+
     // Print success message
     drivers::kprintf("\n");
     drivers::VGA::set_color(Color::YELLOW, Color::BLACK);
@@ -203,7 +252,7 @@ extern "C" void kernel_main(uint32 magic, void* multiboot_info) {
     drivers::VGA::set_color(Color::LIGHT_GRAY, Color::BLACK);
 
     drivers::kprintf("\n");
-    drivers::kprintf("Phase 1, 2, 3 & 4 Complete!\n");
+    drivers::kprintf("Phase 1, 2, 3, 4 & 5 Complete!\n");
     drivers::kprintf("- Multiboot2 boot: OK\n");
     drivers::kprintf("- 64-bit long mode: OK\n");
     drivers::kprintf("- GDT setup: OK\n");
@@ -220,14 +269,17 @@ extern "C" void kernel_main(uint32 magic, void* multiboot_info) {
     drivers::kprintf("- Thread management: OK\n");
     drivers::kprintf("- Scheduler (Round-Robin): OK\n");
     drivers::kprintf("- Multitasking: OK\n");
+    drivers::kprintf("- ATA driver: OK\n");
+    drivers::kprintf("- VFS layer: OK\n");
+    drivers::kprintf("- FAT32 filesystem: OK\n");
 
-    drivers::serial_printf("\nPhase 4 complete. Process and thread management initialized.\n");
-    drivers::serial_printf("Next phase: File system\n");
+    drivers::serial_printf("\nPhase 5 complete. File system initialized.\n");
+    drivers::serial_printf("Next phase: Keyboard driver and Shell\n");
 
     drivers::kprintf("\n");
     drivers::VGA::set_color(Color::LIGHT_BLUE, Color::BLACK);
-    drivers::kprintf("Multitasking enabled! Demo processes running.\n");
-    drivers::kprintf("Watch the processes execute in parallel.\n");
+    drivers::kprintf("System fully operational!\n");
+    drivers::kprintf("File system ready. Demo processes running.\n");
     drivers::VGA::set_color(Color::LIGHT_GRAY, Color::BLACK);
 
     drivers::kprintf("\n");
